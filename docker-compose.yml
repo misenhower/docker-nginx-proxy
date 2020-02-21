@@ -1,0 +1,49 @@
+version: '3.7'
+
+services:
+  nginx-proxy:
+    image: jwilder/nginx-proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - ./data/conf.d:/etc/nginx/conf.d
+      - ./data/vhost.d:/etc/nginx/vhost.d
+      - ./data/certs:/etc/nginx/certs
+      - html:/usr/share/nginx/html
+    labels:
+      - com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy
+    logging:
+      driver: ${NGINX_LOG_DRIVER:-json-file}
+      options:
+        max-size: ${NGINX_LOG_MAX_SIZE:-10m}
+        max-file: ${NGINX_LOG_MAX_FILE:-3}
+
+
+  nginx-letsencrypt:
+    image: jrcs/letsencrypt-nginx-proxy-companion
+    depends_on:
+      - nginx-proxy
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./data/conf.d:/etc/nginx/conf.d
+      - ./data/vhost.d:/etc/nginx/vhost.d
+      - ./data/certs:/etc/nginx/certs
+      - html:/usr/share/nginx/html
+    environment:
+      DEFAULT_EMAIL: ${LETSENCRYPT_DEFAULT_EMAIL:-}
+    logging:
+      driver: ${LETSENCRYPT_LOG_DRIVER:-json-file}
+      options:
+        max-size: ${LETSENCRYPT_LOG_MAX_SIZE:-10m}
+        max-file: ${LETSENCRYPT_LOG_MAX_FILE:-3}
+
+networks:
+ default:
+  name: ${NETWORK_NAME:-nginx-proxy}
+
+volumes:
+  html:
