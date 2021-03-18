@@ -12,6 +12,7 @@ services:
       - ./data/conf.d:/etc/nginx/conf.d
       - ./data/vhost.d:/etc/nginx/vhost.d
       - ./data/certs:/etc/nginx/certs
+      - ./data/htpasswd:/etc/nginx/htpasswd
       - html:/usr/share/nginx/html
     labels:
       - com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy
